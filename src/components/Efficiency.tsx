@@ -14,6 +14,11 @@ export default function Efficiency({ snap }: { snap: Snapshot }) {
   return (
     <section>
       <h2 className="sec">Fitness efficiency</h2>
+      <p className="recnote" style={{ marginTop: -4, marginBottom: 10 }}>
+        Aerobic efficiency = pace ÷ heart rate. Track each activity against itself over time — the
+        index is <strong>not comparable across activities</strong> (cycling covers more distance per
+        heartbeat than running).
+      </p>
       <div className="grid">
         {types.map((t) => {
           const pts = t.months.filter((m) => m.aeroEff > 0).map((m) => ({ d: m.month, v: m.aeroEff }));

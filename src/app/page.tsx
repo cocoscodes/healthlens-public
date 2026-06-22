@@ -10,7 +10,7 @@ import MetricCard from '@/components/MetricCard';
 import Recovery from '@/components/Recovery';
 import Efficiency from '@/components/Efficiency';
 import Workouts from '@/components/Workouts';
-import InsightPanel from '@/components/InsightPanel';
+import AiReport from '@/components/AiReport';
 
 export default function Home() {
   const sample = useMemo(() => sampleSnapshot(), []);
@@ -63,11 +63,12 @@ export default function Home() {
 
       <Workouts workouts={snap.workouts} />
 
-      <InsightPanel snap={snap} />
+      <AiReport snap={snap} />
 
       <footer className="foot">
         Open-source demo · {isSample ? 'synthetic data' : 'in-browser parse of your file'} · no health data is sent
-        to any server. Not a medical device.
+        to any server, and there is no AI on this site. Not a medical device. ·{' '}
+        <a href="/privacy">Privacy &amp; Terms</a>
       </footer>
     </main>
   );
