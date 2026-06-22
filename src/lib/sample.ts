@@ -27,12 +27,26 @@ interface Spec {
 }
 
 const SPECS: Spec[] = [
-  { metric: 'weight', agg: 'point', unit: 'kg', base: 78, drift: -4, noise: 0.4, gapProb: 0.7 },
-  { metric: 'bodyFatPct', agg: 'point', unit: '%', base: 22, drift: -3, noise: 0.5, gapProb: 0.7 },
+  // body composition (sparse — periodic weigh-ins)
+  { metric: 'weight', agg: 'point', unit: 'kg', base: 78, drift: -4, noise: 0.4, gapProb: 0.75 },
+  { metric: 'bodyFatPct', agg: 'point', unit: '%', base: 22, drift: -3, noise: 0.5, gapProb: 0.75 },
+  { metric: 'bmi', agg: 'point', unit: '', base: 24.6, drift: -1, noise: 0.2, gapProb: 0.75 },
+  { metric: 'leanMass', agg: 'point', unit: 'kg', base: 58, drift: 1.2, noise: 0.4, gapProb: 0.75 },
+  // heart & lungs
   { metric: 'restingHR', agg: 'point', unit: 'bpm', base: 62, drift: -4, noise: 2.5 },
+  { metric: 'heartRate', agg: 'point', unit: 'bpm', base: 78, drift: -3, noise: 6 },
+  { metric: 'walkingHR', agg: 'point', unit: 'bpm', base: 118, drift: -4, noise: 5 },
+  { metric: 'hrRecovery', agg: 'point', unit: 'bpm', base: 28, drift: 6, noise: 4, gapProb: 0.4 },
   { metric: 'hrv', agg: 'point', unit: 'ms', base: 48, drift: 8, noise: 6 },
+  { metric: 'vo2max', agg: 'point', unit: 'mL/kg·min', base: 42, drift: 3, noise: 1.4, gapProb: 0.6 },
+  { metric: 'spo2', agg: 'point', unit: '%', base: 97, drift: 0, noise: 0.8 },
+  { metric: 'respRate', agg: 'point', unit: 'br/min', base: 15, drift: 0, noise: 1.4 },
+  // activity totals
   { metric: 'steps', agg: 'sum', unit: 'count', base: 8200, drift: 1500, noise: 2600 },
+  { metric: 'activeEnergy', agg: 'sum', unit: 'kcal', base: 600, drift: 90, noise: 180 },
+  // sleep
   { metric: 'sleepHours', agg: 'sleep', unit: 'h', base: 6.6, drift: 0.4, noise: 0.9 },
+  { metric: 'napHours', agg: 'sleep', unit: 'h', base: 0.7, drift: 0, noise: 0.5, gapProb: 0.6 },
 ];
 
 export function sampleSnapshot(days = 365): Snapshot {
@@ -91,6 +105,22 @@ export function sampleSnapshot(days = 365): Snapshot {
     });
   }
 
+  // synthetic activity rings (Move / Exercise / Stand) — one per day
+  for (let i = days - 1; i >= 0; i--) {
+    const dt = new Date(today);
+    dt.setDate(today.getDate() - i);
+    const progress = (days - i) / days;
+    agg.addActivity({
+      date: dt.toISOString().slice(0, 10),
+      moveKcal: Math.max(0, Math.round(560 + progress * 120 + (rand() - 0.5) * 320)),
+      moveGoal: 650,
+      exerciseMin: Math.max(0, Math.round(32 + progress * 12 + (rand() - 0.5) * 26)),
+      exerciseGoal: 30,
+      standHours: Math.min(16, Math.max(0, Math.round(12 + (rand() - 0.5) * 5))),
+      standGoal: 12,
+    });
+  }
+
   const rollups = agg.finalize();
   const extras = agg.finalizeExtras();
   const latest: Snapshot['latest'] = [];
@@ -105,6 +135,7 @@ export function sampleSnapshot(days = 365): Snapshot {
     sourceZip: 'sample-data',
     latest,
     rollups,
+    activity: extras.activity,
     workouts: extras.workouts,
   };
 }

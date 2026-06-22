@@ -3,21 +3,27 @@
 import { useMemo, useState } from 'react';
 import { sampleSnapshot } from '@/lib/sample';
 import { buildView } from '@/lib/view';
-import { METRICS_PUBLIC } from '@/lib/types';
-import type { Snapshot } from '@/lib/types';
+import type { Metric, Snapshot } from '@/lib/types';
 import UploadZone from '@/components/UploadZone';
 import MetricCard from '@/components/MetricCard';
+import ActivityTrend from '@/components/ActivityTrend';
 import Recovery from '@/components/Recovery';
 import Efficiency from '@/components/Efficiency';
 import Workouts from '@/components/Workouts';
 import AiReport from '@/components/AiReport';
 
+// Same grouping as the private Version A artifact.
+const GROUPS: [string, Metric[]][] = [
+  ['Body composition', ['weight', 'bodyFatPct', 'bmi', 'leanMass']],
+  ['Heart & lungs', ['restingHR', 'heartRate', 'walkingHR', 'hrRecovery', 'hrv', 'vo2max', 'spo2', 'respRate']],
+  ['Activity totals', ['steps', 'activeEnergy']],
+  ['Sleep', ['sleepHours', 'napHours']],
+];
+
 export default function Home() {
   const sample = useMemo(() => sampleSnapshot(), []);
   const [snap, setSnap] = useState<Snapshot>(sample);
   const [source, setSource] = useState<'sample' | string>('sample');
-
-  const views = METRICS_PUBLIC.map((m) => buildView(snap, m));
   const isSample = source === 'sample';
 
   return (
@@ -51,11 +57,22 @@ export default function Home() {
         </button>
       )}
 
-      <div className="grid">
-        {views.map((v) => (
-          <MetricCard key={v.metric} view={v} />
-        ))}
-      </div>
+      <ActivityTrend snap={snap} />
+
+      {GROUPS.map(([title, metrics]) => {
+        const views = metrics.map((m) => buildView(snap, m)).filter((v) => v.head != null);
+        if (!views.length) return null;
+        return (
+          <section key={title}>
+            <h2 className="sec">{title}</h2>
+            <div className="grid">
+              {views.map((v) => (
+                <MetricCard key={v.metric} view={v} />
+              ))}
+            </div>
+          </section>
+        );
+      })}
 
       <Recovery snap={snap} />
 
