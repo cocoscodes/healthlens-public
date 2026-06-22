@@ -17,24 +17,32 @@ export default function MetricChart({
   points,
   granularity,
   color = 'var(--accent)',
+  band = null,
+  sparse = false,
 }: {
   points: Pt[];
   granularity: string;
   color?: string;
+  band?: { lo: number; hi: number } | null;
+  sparse?: boolean;
 }) {
   if (!points.length) return <div className="chart-empty">No data</div>;
   const vs = points.map((p) => p.v);
   let mn = Math.min(...vs), mx = Math.max(...vs);
+  if (band) { mn = Math.min(mn, band.lo); mx = Math.max(mx, band.hi); }
   if (mn === mx) { mn -= 1; mx += 1; }
   const x = (i: number) => PL + (points.length === 1 ? PW / 2 : (i * PW) / (points.length - 1));
   const y = (v: number) => PT + PH - ((v - mn) / (mx - mn)) * PH;
   const line = points.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(p.v).toFixed(1)}`).join(' ');
   const yTicks = [mn, (mn + mx) / 2, mx];
   const idxs = points.length <= 2 ? points.map((_, i) => i) : [0, Math.floor((points.length - 1) / 2), points.length - 1];
-  const showDots = points.length <= 14;
+  const showDots = sparse || points.length <= 14;
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ height: 'auto', display: 'block' }}>
+      {band && (
+        <rect x={PL} y={y(band.hi)} width={PW} height={Math.max(0, y(band.lo) - y(band.hi))} fill={color} opacity={0.1} />
+      )}
       {yTicks.map((t, i) => {
         const yy = y(t);
         return (
@@ -44,7 +52,7 @@ export default function MetricChart({
           </g>
         );
       })}
-      <path d={line} fill="none" stroke={color} strokeWidth={1.8} />
+      {!sparse && <path d={line} fill="none" stroke={color} strokeWidth={1.8} />}
       {showDots && points.map((p, i) => <circle key={i} cx={x(i)} cy={y(p.v)} r={2.1} fill={color} />)}
       {idxs.map((i, j) => {
         const anchor = j === 0 ? 'start' : j === idxs.length - 1 ? 'end' : 'middle';

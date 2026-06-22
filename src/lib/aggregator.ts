@@ -62,21 +62,37 @@ export class Aggregator {
   // exact cross-source dedupe for point metrics: `${metric}|${ts}|${value}`
   private seen = new Set<string>();
   // workouts + activity rings (non-Record elements)
-  private wByType = new Map<string, { label: string; count: number; totalMin: number; totalKcal: number }>();
+  private wByType = new Map<string, { label: string; count: number; totalMin: number; totalKcal: number; totalKm: number }>();
   private wRecent: WorkoutRecent[] = [];
-  private wTotals = { count: 0, min: 0, kcal: 0 };
+  private wTotals = { count: 0, min: 0, kcal: 0, km: 0 };
+  // per (type, month) efficiency accumulators: key = `${type}|${YYYY-MM}`
+  private wEff = new Map<string, { type: string; label: string; sessions: number; min: number; km: number; kcal: number; hrSum: number; hrMin: number }>();
   private activity = new Map<string, ActivityDay>();
 
   addWorkout(w: WorkoutRecent): void {
-    const a = this.wByType.get(w.type) ?? { label: w.label, count: 0, totalMin: 0, totalKcal: 0 };
+    const a = this.wByType.get(w.type) ?? { label: w.label, count: 0, totalMin: 0, totalKcal: 0, totalKm: 0 };
     a.count += 1;
     a.totalMin += w.min;
     a.totalKcal += w.kcal;
+    a.totalKm += w.km;
     this.wByType.set(w.type, a);
     this.wRecent.push(w);
     this.wTotals.count += 1;
     this.wTotals.min += w.min;
     this.wTotals.kcal += w.kcal;
+    this.wTotals.km += w.km;
+    // monthly efficiency accumulation
+    const ek = `${w.type}|${w.date.slice(0, 7)}`;
+    const e = this.wEff.get(ek) ?? { type: w.type, label: w.label, sessions: 0, min: 0, km: 0, kcal: 0, hrSum: 0, hrMin: 0 };
+    e.sessions += 1;
+    e.min += w.min;
+    e.km += w.km;
+    e.kcal += w.kcal;
+    if (w.hrAvg > 0) {
+      e.hrSum += w.hrAvg * w.min;
+      e.hrMin += w.min;
+    }
+    this.wEff.set(ek, e);
   }
 
   addActivity(a: ActivityDay): void {
@@ -94,17 +110,39 @@ export class Aggregator {
         count: v.count,
         totalMin: Math.round(v.totalMin),
         totalKcal: Math.round(v.totalKcal),
+        totalKm: Math.round(v.totalKm * 10) / 10,
       }))
       .sort((a, b) => b.count - a.count);
     const recent = [...this.wRecent].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 15);
+    const r1 = (n: number) => Math.round(n * 10) / 10;
+    const efficiency = [...this.wEff.entries()]
+      .map(([key, e]) => {
+        const month = key.split('|')[1];
+        const paceKmh = e.min > 0 && e.km > 0 ? (e.km / (e.min / 60)) : 0;
+        const hrAvg = e.hrMin > 0 ? e.hrSum / e.hrMin : 0;
+        return {
+          month,
+          type: e.type,
+          label: e.label,
+          sessions: e.sessions,
+          km: r1(e.km),
+          paceKmh: r1(paceKmh),
+          kcalPerMin: e.min > 0 ? Math.round((e.kcal / e.min) * 10) / 10 : 0,
+          hrAvg: Math.round(hrAvg),
+          aeroEff: paceKmh > 0 && hrAvg > 0 ? Math.round((paceKmh / hrAvg) * 1000 * 10) / 10 : 0,
+        };
+      })
+      .sort((a, b) => (a.month < b.month ? -1 : a.month > b.month ? 1 : a.type < b.type ? -1 : 1));
     return {
       activity,
       workouts: {
         totalCount: this.wTotals.count,
         totalMin: Math.round(this.wTotals.min),
         totalKcal: Math.round(this.wTotals.kcal),
+        totalKm: Math.round(this.wTotals.km * 10) / 10,
         byType,
         recent,
+        efficiency,
       },
     };
   }

@@ -5,35 +5,33 @@
 // the shared Aggregator. The file never leaves the device — no upload, no server.
 
 import { Unzip, UnzipInflate } from 'fflate';
-import { parseAttrs, normalizeRecord, parseWorkout, parseActivitySummary } from './parser';
+import { parseAttrs, normalizeRecord, parseActivitySummary, WorkoutCollector } from './parser';
 import { Aggregator } from './aggregator';
 import { METRICS, METRIC_META } from './types';
 import type { Snapshot } from './types';
 
 const RECORD_RE = /<Record\b[^>]*>/g;
-const WORKOUT_RE = /<Workout\b[^>]*>/g;
-const ACT_RE = /<ActivitySummary\b[^>]*\/?>/g;
 
-function processChunk(text: string, agg: Aggregator) {
-  if (text.indexOf('<Record') !== -1) {
-    const m = text.match(RECORD_RE);
-    if (m) for (const tag of m) {
-      const rec = normalizeRecord(parseAttrs(tag));
-      if (rec) agg.add(rec);
+// Process a block of complete lines in document order. Workout blocks span
+// multiple lines (distance lives in child <WorkoutStatistics>), so a stateful
+// collector consumes lines; Records/ActivitySummary are matched per line.
+function processChunk(text: string, agg: Aggregator, wc: WorkoutCollector) {
+  const lines = text.split('\n');
+  for (const line of lines) {
+    wc.line(line);
+    if (line.indexOf('<ActivitySummary') !== -1) {
+      const am = line.match(/<ActivitySummary\b[^>]*\/?>/);
+      if (am) {
+        const a = parseActivitySummary(parseAttrs(am[0]));
+        if (a) agg.addActivity(a);
+      }
     }
-  }
-  if (text.indexOf('<Workout ') !== -1) {
-    const m = text.match(WORKOUT_RE);
-    if (m) for (const tag of m) {
-      const w = parseWorkout(parseAttrs(tag));
-      if (w) agg.addWorkout(w);
-    }
-  }
-  if (text.indexOf('<ActivitySummary') !== -1) {
-    const m = text.match(ACT_RE);
-    if (m) for (const tag of m) {
-      const a = parseActivitySummary(parseAttrs(tag));
-      if (a) agg.addActivity(a);
+    if (line.indexOf('<Record') !== -1) {
+      const m = line.match(RECORD_RE);
+      if (m) for (const tag of m) {
+        const rec = normalizeRecord(parseAttrs(tag));
+        if (rec) agg.add(rec);
+      }
     }
   }
 }
@@ -63,6 +61,7 @@ function buildSnapshot(agg: Aggregator, sourceZip: string): Snapshot {
 export async function parseExportZip(file: File): Promise<Snapshot> {
   return new Promise<Snapshot>((resolve, reject) => {
     const agg = new Aggregator();
+    const wc = new WorkoutCollector((w) => agg.addWorkout(w));
     const dec = new TextDecoder();
     let leftover = '';
     let found = false;
@@ -82,7 +81,8 @@ export async function parseExportZip(file: File): Promise<Snapshot> {
         }
         const text = leftover + dec.decode(chunk, { stream: !final });
         if (final) {
-          processChunk(text, agg);
+          processChunk(text, agg, wc);
+          wc.flush();
           leftover = '';
           settled = true;
           resolve(buildSnapshot(agg, file.name));
@@ -93,7 +93,7 @@ export async function parseExportZip(file: File): Promise<Snapshot> {
           leftover = text;
           return;
         }
-        processChunk(text.slice(0, nl), agg);
+        processChunk(text.slice(0, nl), agg, wc);
         leftover = text.slice(nl + 1);
       };
       f.start();

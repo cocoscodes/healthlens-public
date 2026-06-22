@@ -8,6 +8,18 @@ import { METRIC_META } from './types';
 const ADDITIVE = new Set<Metric>(['steps', 'activeEnergy', 'sleepHours', 'napHours']);
 const round = (n: number) => Math.round(n * 100) / 100;
 
+/** Favorable trend direction per metric (for color coding). 'neutral' otherwise. */
+export const GOOD: Partial<Record<Metric, 'up' | 'down'>> = {
+  weight: 'down', bodyFatPct: 'down', restingHR: 'down',
+  leanMass: 'up', hrv: 'up', vo2max: 'up', spo2: 'up', hrRecovery: 'up',
+  steps: 'up', activeEnergy: 'up', sleepHours: 'up',
+};
+function pctile(arr: number[], q: number): number {
+  const s = [...arr].sort((a, b) => a - b);
+  const i = (s.length - 1) * q, lo = Math.floor(i), hi = Math.ceil(i);
+  return s[lo] + (s[hi] - s[lo]) * (i - lo);
+}
+
 export interface Pt {
   d: string;
   v: number;
@@ -20,6 +32,8 @@ export interface MetricView {
   headKind: string;
   headDate: string | null;
   trend: TrendDir;
+  good: 'up' | 'down' | 'neutral';
+  band: { lo: number; hi: number } | null;
   sparse: boolean;
   count: number;
   defView: 'monthly' | 'weekly' | 'daily';
@@ -75,6 +89,8 @@ export function buildView(snap: Snapshot, metric: Metric): MetricView {
     }
   }
 
+  const dv = dPts.map((p) => p.v);
+  const band = dPts.length >= 8 ? { lo: round(pctile(dv, 0.25)), hi: round(pctile(dv, 0.75)) } : null;
   return {
     metric,
     label: METRIC_META[metric].label,
@@ -83,6 +99,8 @@ export function buildView(snap: Snapshot, metric: Metric): MetricView {
     headKind: add ? 'recent avg/day (90d)' : 'recent avg (90d)',
     headDate,
     trend,
+    good: GOOD[metric] || 'neutral',
+    band,
     sparse: daily.length < 30,
     count: daily.length,
     defView: mPts.length >= 3 ? 'monthly' : wPts.length >= 3 ? 'weekly' : 'daily',

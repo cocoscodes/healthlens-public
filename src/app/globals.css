@@ -54,6 +54,11 @@ code { background: var(--panel-2); border: 1px solid var(--border); border-radiu
 .card-head { display: flex; justify-content: space-between; align-items: center; }
 .card-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 .card-trend { font-size: 14px; color: var(--muted); }
+.tr-good { color: #3fb950; }
+.tr-bad { color: #f0726e; }
+.tr-neutral { color: var(--muted); }
+.sec { font-size: 14px; font-weight: 500; margin: 26px 0 10px; }
+.recnote { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
 .card-value { font-size: 26px; font-weight: 600; margin-top: 3px; }
 .card-unit { font-size: 13px; color: var(--muted); margin-left: 5px; }
 .card-sub { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
@@ -62,6 +67,14 @@ code { background: var(--panel-2); border: 1px solid var(--border); border-radiu
 .tg { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; font-size: 11px; padding: 1px 8px; cursor: pointer; }
 .tg.on { background: var(--panel-2); color: var(--accent); border-color: var(--accent); }
 .tag { margin-left: auto; font-size: 10px; color: var(--muted); }
+
+.workouts { margin-top: 26px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.workouts h2 { margin: 0 0 2px; font-size: 16px; }
+.workouts-sub { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
+.wkrow { display: flex; align-items: center; gap: 10px; margin: 6px 0; font-size: 13px; }
+.wkname { width: 200px; flex-shrink: 0; }
+.wkbar { height: 8px; background: var(--accent); border-radius: 4px; flex-shrink: 0; }
+.wknum { color: var(--muted); font-size: 12px; white-space: nowrap; }
 
 .insight { margin-top: 26px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
 .insight-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }

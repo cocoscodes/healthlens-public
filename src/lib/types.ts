@@ -100,6 +100,7 @@ export interface WorkoutTypeAgg {
   count: number;
   totalMin: number;
   totalKcal: number;
+  totalKm: number;
 }
 
 export interface WorkoutRecent {
@@ -108,14 +109,33 @@ export interface WorkoutRecent {
   label: string;
   min: number;
   kcal: number;
+  km: number;
+  /** Average heart rate during the workout (bpm); 0 if not recorded. */
+  hrAvg: number;
+}
+
+/** Monthly efficiency point for one activity type (input→output transforms). */
+export interface WorkoutEffMonth {
+  month: string; // YYYY-MM
+  type: string;
+  label: string;
+  sessions: number;
+  km: number;
+  paceKmh: number; // distance ÷ time
+  kcalPerMin: number; // energy output rate
+  hrAvg: number; // time-weighted average HR
+  aeroEff: number; // pace ÷ HR ×1000 (distance per heartbeat; higher = fitter)
 }
 
 export interface WorkoutSummary {
   totalCount: number;
   totalMin: number;
   totalKcal: number;
+  totalKm: number;
   byType: WorkoutTypeAgg[];
   recent: WorkoutRecent[];
+  /** Per (type, month) efficiency series — for fitness-trend charts. */
+  efficiency: WorkoutEffMonth[];
 }
 
 /** The single "latest" snapshot written by the ingest loop. */

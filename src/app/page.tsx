@@ -7,6 +7,9 @@ import { METRICS_PUBLIC } from '@/lib/types';
 import type { Snapshot } from '@/lib/types';
 import UploadZone from '@/components/UploadZone';
 import MetricCard from '@/components/MetricCard';
+import Recovery from '@/components/Recovery';
+import Efficiency from '@/components/Efficiency';
+import Workouts from '@/components/Workouts';
 import InsightPanel from '@/components/InsightPanel';
 
 export default function Home() {
@@ -53,6 +56,12 @@ export default function Home() {
           <MetricCard key={v.metric} view={v} />
         ))}
       </div>
+
+      <Recovery snap={snap} />
+
+      <Efficiency snap={snap} />
+
+      <Workouts workouts={snap.workouts} />
 
       <InsightPanel snap={snap} />
 

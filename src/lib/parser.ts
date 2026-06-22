@@ -150,17 +150,80 @@ export function parseWorkout(attrs: { [k: string]: string }): WorkoutRecent | nu
     if (attrs.durationUnit === 'sec') min = min / 60;
     else if (attrs.durationUnit === 'hr') min = min * 60;
   }
-  // Modern exports may omit totalEnergyBurned (it moves to WorkoutStatistics).
+  // Modern exports may omit totalEnergyBurned / totalDistance (they move to
+  // WorkoutStatistics children — see WorkoutCollector below).
   let kcal = Number.parseFloat(attrs.totalEnergyBurned);
   if (!Number.isFinite(kcal)) kcal = 0;
   if (attrs.totalEnergyBurnedUnit === 'kJ') kcal = kcal / 4.184;
+  let km = Number.parseFloat(attrs.totalDistance);
+  km = Number.isFinite(km) ? toKm(km, attrs.totalDistanceUnit) : 0;
   return {
     date: start.localDate,
     type,
     label: workoutLabel(type),
     min: Math.round(min * 10) / 10,
     kcal: Math.round(kcal),
+    km: Math.round(km * 100) / 100,
+    hrAvg: 0, // filled from the HeartRate WorkoutStatistic by WorkoutCollector
   };
+}
+
+/** Convert a distance to kilometres. Apple exports km here, but be defensive. */
+export function toKm(v: number, unit?: string): number {
+  if (!unit || unit === 'km') return v;
+  if (unit === 'mi') return v * 1.609344;
+  if (unit === 'm') return v / 1000;
+  if (unit === 'yd') return v * 0.0009144;
+  return v;
+}
+
+/**
+ * Stateful assembler for <Workout> blocks. Apple stores per-workout distance and
+ * energy in <WorkoutStatistics> children, not on the opening tag — so we feed
+ * lines in document order: open on <Workout …>, accumulate Distance and energy
+ * from child stats, emit on </Workout>. Used by both the Node and browser streamers.
+ */
+export class WorkoutCollector {
+  private cur: WorkoutRecent | null = null;
+  constructor(private sink: (w: WorkoutRecent) => void) {}
+
+  line(line: string): void {
+    if (line.indexOf('<Workout ') !== -1) {
+      const m = line.match(/<Workout\b[^>]*>/);
+      if (m) {
+        if (this.cur) this.flush(); // defensive: previous block had no close
+        this.cur = parseWorkout(parseAttrs(m[0]));
+        if (this.cur && /\/>\s*$/.test(m[0])) this.flush(); // self-closed, no children
+      }
+      return;
+    }
+    if (this.cur && line.indexOf('<WorkoutStatistics') !== -1) {
+      const m = line.match(/<WorkoutStatistics\b[^>]*>/);
+      if (m) {
+        const a = parseAttrs(m[0]);
+        const sum = Number.parseFloat(a.sum);
+        if (a.type) {
+          if (Number.isFinite(sum) && a.type.indexOf('Distance') !== -1) this.cur.km += toKm(sum, a.unit);
+          else if (Number.isFinite(sum) && a.type.endsWith('ActiveEnergyBurned') && !this.cur.kcal) this.cur.kcal += Math.round(sum);
+          else if (a.type.endsWith('HeartRate')) {
+            const avg = Number.parseFloat(a.average);
+            if (Number.isFinite(avg)) this.cur.hrAvg = Math.round(avg);
+          }
+        }
+      }
+      return;
+    }
+    if (this.cur && line.indexOf('</Workout>') !== -1) this.flush();
+  }
+
+  /** Emit any in-progress workout (call at end of stream). */
+  flush(): void {
+    if (this.cur) {
+      this.cur.km = Math.round(this.cur.km * 100) / 100;
+      this.sink(this.cur);
+      this.cur = null;
+    }
+  }
 }
 
 /** Parse an <ActivitySummary> element into a daily activity-ring record. */
