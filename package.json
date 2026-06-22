@@ -1,0 +1,25 @@
+{
+  "name": "healthlens-public",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HealthLens (public demo) — explore a privacy-first health dashboard. Upload parsed in-browser; BYOK. Not a medical device.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fflate": "0.8.2",
+    "next": "14.2.15",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "20.14.10",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "typescript": "5.5.3"
+  }
+}

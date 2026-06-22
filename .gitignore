@@ -1,0 +1,22 @@
+# Public demo — ships ONLY synthetic data. Never commit anyone's real export.
+*.zip
+export*.xml
+export_cda.xml
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# Misc
+.DS_Store
+*.log
+.vercel
+.env
+.env.*
+.idea/
+.vscode/
