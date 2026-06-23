@@ -3,13 +3,16 @@
 import { useMemo, useState } from 'react';
 import { sampleSnapshot } from '@/lib/sample';
 import { buildView } from '@/lib/view';
+import { FOCI, type Focus } from '@/lib/focus';
 import type { Metric, Snapshot } from '@/lib/types';
 import UploadZone from '@/components/UploadZone';
+import FocusBar from '@/components/FocusBar';
 import MetricCard from '@/components/MetricCard';
 import ActivityTrend from '@/components/ActivityTrend';
 import Recovery from '@/components/Recovery';
 import Efficiency from '@/components/Efficiency';
 import Workouts from '@/components/Workouts';
+import ClinicalSummary from '@/components/ClinicalSummary';
 import AiReport from '@/components/AiReport';
 
 // Same grouping as the private Version A artifact.
@@ -24,7 +27,9 @@ export default function Home() {
   const sample = useMemo(() => sampleSnapshot(), []);
   const [snap, setSnap] = useState<Snapshot>(sample);
   const [source, setSource] = useState<'sample' | string>('sample');
+  const [focus, setFocus] = useState<Focus>(FOCI[0]);
   const isSample = source === 'sample';
+  const priorityViews = focus.priority.map((m) => buildView(snap, m)).filter((v) => v.head != null);
 
   return (
     <main className="shell">
@@ -57,6 +62,19 @@ export default function Home() {
         </button>
       )}
 
+      <FocusBar focus={focus} onChange={setFocus} />
+
+      {priorityViews.length > 0 && (
+        <section>
+          <h2 className="sec">Priority — {focus.label}</h2>
+          <div className="grid">
+            {priorityViews.map((v) => (
+              <MetricCard key={`p-${v.metric}`} view={v} />
+            ))}
+          </div>
+        </section>
+      )}
+
       <ActivityTrend snap={snap} />
 
       {GROUPS.map(([title, metrics]) => {
@@ -79,6 +97,8 @@ export default function Home() {
       <Efficiency snap={snap} />
 
       <Workouts workouts={snap.workouts} />
+
+      <ClinicalSummary snap={snap} focus={focus} />
 
       <AiReport snap={snap} />
 

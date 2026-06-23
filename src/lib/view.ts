@@ -31,6 +31,8 @@ export interface MetricView {
   head: number | null;
   headKind: string;
   headDate: string | null;
+  prior: number | null;
+  delta: number | null;
   trend: TrendDir;
   good: 'up' | 'down' | 'neutral';
   band: { lo: number; hi: number } | null;
@@ -73,6 +75,8 @@ export function buildView(snap: Snapshot, metric: Metric): MetricView {
   let head: number | null = null;
   let headDate: string | null = null;
   let trend: TrendDir = 'flat';
+  let prior: number | null = null;
+  let delta: number | null = null;
   if (dPts.length) {
     const lastD = dPts[dPts.length - 1].d;
     const cut = addDays(lastD, -90);
@@ -84,6 +88,8 @@ export function buildView(snap: Snapshot, metric: Metric): MetricView {
     headDate = lastD;
     if (prev.length) {
       const pv = prev.reduce((s, p) => s + p.v, 0) / prev.length;
+      prior = round(pv);
+      delta = round(head - pv);
       const th = Math.abs(pv) * 0.02;
       trend = head > pv + th ? 'up' : head < pv - th ? 'down' : 'flat';
     }
@@ -98,6 +104,8 @@ export function buildView(snap: Snapshot, metric: Metric): MetricView {
     head,
     headKind: add ? 'recent avg/day (90d)' : 'recent avg (90d)',
     headDate,
+    prior,
+    delta,
     trend,
     good: GOOD[metric] || 'neutral',
     band,
