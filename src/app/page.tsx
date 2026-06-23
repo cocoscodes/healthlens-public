@@ -13,7 +13,6 @@ import Recovery from '@/components/Recovery';
 import Efficiency from '@/components/Efficiency';
 import Workouts from '@/components/Workouts';
 import ClinicalSummary from '@/components/ClinicalSummary';
-import AiReport from '@/components/AiReport';
 
 // Same grouping as the private Version A artifact.
 const GROUPS: [string, Metric[]][] = [
@@ -99,8 +98,6 @@ export default function Home() {
       <Workouts workouts={snap.workouts} />
 
       <ClinicalSummary snap={snap} focus={focus} />
-
-      <AiReport snap={snap} />
 
       <footer className="foot">
         Open-source demo · {isSample ? 'synthetic data' : 'in-browser parse of your file'} · no health data is sent

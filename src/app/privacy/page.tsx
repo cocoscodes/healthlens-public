@@ -24,10 +24,9 @@ export default function Privacy() {
         discards it.
       </p>
       <p>
-        There is <strong>no AI on this site</strong>. The optional &ldquo;Ask your own AI&rdquo;
-        feature only generates a de-identified text summary that <em>you</em> may choose to copy into
-        a separate assistant of your choosing. That action, and any data you send to that assistant,
-        is entirely under your control and governed by that provider&rsquo;s terms — not ours.
+        There is <strong>no AI on this site</strong> and no &ldquo;send to an assistant&rdquo;
+        feature. You can print or save a PDF summary for your own records or your doctor; that file
+        stays on your device unless you choose to share it.
       </p>
 
       <h2 className="sec">What we do process</h2>

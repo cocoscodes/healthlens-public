@@ -13,8 +13,8 @@ The public, deployable companion to the private HealthLens dashboard.
 - Visitors can upload their own Apple Health `export.zip` — **parsed entirely in
   the browser** (via `fflate`), streamed and aggregated client-side. The file
   **never leaves the device** and nothing is stored on any server.
-- **BYOK**: the visitor enters their own Anthropic API key; AI calls go
-  **browser → Anthropic directly** (key kept in memory only).
+- **No AI, no egress**: the site never calls any AI service and sends no data
+  anywhere. You can print / save a PDF clinical summary locally.
 - Simplified metric subset: **weight, body fat %, steps, resting HR, sleep**.
 - Charts default to monthly trends (weekly/daily toggles) with labeled axes;
   headline = trailing-90-day average.
@@ -30,7 +30,7 @@ The public, deployable companion to the private HealthLens dashboard.
 Reuses the same core unchanged: `parser.ts`, `aggregator.ts`, `ai-summary.ts`
 (safety system prompt), `series.ts`, `view.ts`, `types.ts`, `metrics.ts`. The
 only Version-B-specific pieces are `clientParse.ts` (in-browser zip/XML),
-`sample.ts` (synthetic seed), and the upload/BYOK UI.
+`sample.ts` (synthetic seed), and the upload + clinical-summary UI.
 
 ## Run locally
 
