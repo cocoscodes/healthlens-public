@@ -46,6 +46,13 @@ export default function YoYChart({ monthly, color = 'var(--accent)', label }: { 
         }
         return <path key={yr} d={d} fill="none" stroke={col} strokeWidth={1.6} />;
       })}
+      {years.flatMap((yr) =>
+        Object.entries(byYear[yr]).map(([m, v]) => (
+          <circle key={`${yr}-${m}`} cx={x(+m)} cy={y(v)} r={6} fill="transparent" style={{ cursor: 'crosshair' }}>
+            <title>{`${yr}-${String(m).padStart(2, '0')}: ${nf(v)}`}</title>
+          </circle>
+        )),
+      )}
       {[[1, 'Jan'], [6, 'Jun'], [12, 'Dec']].map((a, j) => {
         const anchor = j === 0 ? 'start' : j === 2 ? 'end' : 'middle';
         const xx = j === 0 ? PL : j === 2 ? W - PR : x(a[0] as number);

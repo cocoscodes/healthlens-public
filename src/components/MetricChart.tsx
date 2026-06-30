@@ -60,6 +60,12 @@ export default function MetricChart({
       })}
       {!sparse && <path d={line} fill="none" stroke={color} strokeWidth={1.8} />}
       {showDots && points.map((p, i) => <circle key={i} cx={x(i)} cy={y(p.v)} r={2.1} fill={color} />)}
+      {/* invisible hit-points give a native value tooltip on hover */}
+      {points.map((p, i) => (
+        <circle key={`h${i}`} cx={x(i)} cy={y(p.v)} r={7} fill="transparent" style={{ cursor: 'crosshair' }}>
+          <title>{`${p.d}: ${nf(p.v)}`}</title>
+        </circle>
+      ))}
       {idxs.map((i, j) => {
         const anchor = j === 0 ? 'start' : j === idxs.length - 1 ? 'end' : 'middle';
         const xx = j === 0 ? PL : j === idxs.length - 1 ? W - PR : x(i);
