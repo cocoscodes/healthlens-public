@@ -2,7 +2,7 @@
 
 import type { Pt } from '@/lib/view';
 
-const W = 320, H = 140, PL = 46, PR = 10, PT = 12, PB = 22;
+const W = 320, H = 170, PL = 46, PR = 10, PT = 14, PB = 24;
 const PW = W - PL - PR, PH = H - PT - PB;
 
 function nf(v: number) {

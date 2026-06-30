@@ -2,7 +2,7 @@
 
 import type { Pt } from '@/lib/view';
 
-const W = 320, H = 150, PL = 46, PR = 10, PT = 12, PB = 30;
+const W = 320, H = 184, PL = 46, PR = 10, PT = 14, PB = 32;
 const PW = W - PL - PR, PH = H - PT - PB;
 const PAL = ['#8a93a3', '#e0a64e', '#36d39a', '#ff5a6e'];
 
