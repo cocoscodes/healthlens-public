@@ -30,6 +30,7 @@ html, body {
   margin: 22px 0 8px; border: 1px dashed var(--border); border-radius: var(--radius);
   background: var(--panel); padding: 22px; text-align: center;
 }
+.upload.dragging { border-color: var(--accent); border-style: solid; background: var(--panel-2); }
 .upload-title { margin: 0 0 2px; font-weight: 600; }
 .upload-sub { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
 .upload-btn {
@@ -46,9 +47,15 @@ code { background: var(--panel-2); border: 1px solid var(--border); border-radiu
   border-radius: 8px; padding: 5px 12px; font-size: 13px; cursor: pointer; margin: 6px 0 0;
 }
 
+.skip-link {
+  position: absolute; left: -9999px; top: 0; z-index: 200;
+  background: var(--accent); color: #06243f; padding: 8px 14px; border-radius: 0 0 8px 0; font-size: 13px; font-weight: 600;
+}
+.skip-link:focus { left: 0; }
+
 .grid {
   margin-top: 18px; display: grid; gap: 14px;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
 }
 .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
 .card-head { display: flex; justify-content: space-between; align-items: center; }
@@ -124,8 +131,17 @@ code { background: var(--panel-2); border: 1px solid var(--border); border-radiu
 .legal code { background: var(--panel-2); border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px; }
 
 @media print {
-  .upload, .reset, .summary-actions, .focusbar, .card-foot { display: none !important; }
+  .upload, .reset, .summary-actions, .focusbar, .card-foot, .skip-link { display: none !important; }
   body { background: #fff; color: #000; }
   .card, .summary, .workouts, section { break-inside: avoid; }
   .summary-table th, .summary-table td { border-color: #ccc; }
+
+  /* "Print / Save as PDF" on the clinical summary isolates just that section */
+  body.print-summary .banner,
+  body.print-summary .header,
+  body.print-summary .upload,
+  body.print-summary .reset,
+  body.print-summary .focusbar,
+  body.print-summary .foot,
+  body.print-summary main > div > section:not(.summary) { display: none !important; }
 }

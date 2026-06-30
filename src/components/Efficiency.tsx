@@ -35,7 +35,7 @@ export default function Efficiency({ snap }: { snap: Snapshot }) {
               <div className="card-sub">
                 pace÷HR ×1000 · higher = fitter · {last.paceKmh} km/h @ {last.hrAvg} bpm
               </div>
-              <MetricChart points={pts} granularity="monthly" color="#36d39a" />
+              <MetricChart points={pts} granularity="monthly" color="#36d39a" label={`${t.label} aerobic efficiency`} />
             </div>
           );
         })}

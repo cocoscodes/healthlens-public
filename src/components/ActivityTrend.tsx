@@ -23,16 +23,16 @@ function group(snap: Snapshot, keyFn: (d: string) => string) {
 function Card({ label, unit, monthly, weekly, color }: { label: string; unit: string; monthly: Pt[]; weekly: Pt[]; color: string }) {
   const [g, setG] = useState<'monthly' | 'weekly'>('monthly');
   const pts = g === 'monthly' ? monthly : weekly;
-  const head = monthly.length ? monthly[monthly.length - 1].v : null;
+  const head = pts.length ? pts[pts.length - 1].v : null; // reflects selected range
   return (
     <div className="card">
       <div className="card-head"><span className="card-label">{label}</span></div>
       <div className="card-value">{head != null ? head.toLocaleString() : '—'}<span className="card-unit">{unit}</span></div>
-      <div className="card-sub">monthly avg{monthly.length ? ` · ${monthly[monthly.length - 1].d}` : ''}</div>
-      <MetricChart points={pts} granularity={g} color={color} />
-      <div className="card-foot">
+      <div className="card-sub">{g} avg{pts.length ? ` · ${pts[pts.length - 1].d}` : ''}</div>
+      <MetricChart points={pts} granularity={g} color={color} label={label} />
+      <div className="card-foot" role="group" aria-label={`${label} chart range`}>
         {(['monthly', 'weekly'] as const).map((k) => (
-          <button key={k} className={k === g ? 'tg on' : 'tg'} onClick={() => setG(k)}>{k}</button>
+          <button key={k} className={k === g ? 'tg on' : 'tg'} aria-pressed={k === g} onClick={() => setG(k)}>{k}</button>
         ))}
       </div>
     </div>

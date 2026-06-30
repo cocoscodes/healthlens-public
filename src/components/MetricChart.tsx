@@ -19,14 +19,20 @@ export default function MetricChart({
   color = 'var(--accent)',
   band = null,
   sparse = false,
+  label,
 }: {
   points: Pt[];
   granularity: string;
   color?: string;
   band?: { lo: number; hi: number } | null;
   sparse?: boolean;
+  label?: string;
 }) {
   if (!points.length) return <div className="chart-empty">No data</div>;
+  const last = points[points.length - 1];
+  const a11y = label
+    ? `${label}, ${granularity} chart. Latest ${nf(last.v)} on ${last.d}. Range ${nf(Math.min(...points.map((p) => p.v)))} to ${nf(Math.max(...points.map((p) => p.v)))}.`
+    : undefined;
   const vs = points.map((p) => p.v);
   let mn = Math.min(...vs), mx = Math.max(...vs);
   if (band) { mn = Math.min(mn, band.lo); mx = Math.max(mx, band.hi); }
@@ -39,7 +45,7 @@ export default function MetricChart({
   const showDots = sparse || points.length <= 14;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ height: 'auto', display: 'block' }}>
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ height: 'auto', display: 'block' }} role="img" aria-label={a11y}>
       {band && (
         <rect x={PL} y={y(band.hi)} width={PW} height={Math.max(0, y(band.lo) - y(band.hi))} fill={color} opacity={0.1} />
       )}

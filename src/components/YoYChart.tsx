@@ -12,7 +12,7 @@ function nf(v: number) {
 }
 
 /** Overlay each calendar year as its own line, aligned by month (Jan–Dec). */
-export default function YoYChart({ monthly, color = 'var(--accent)' }: { monthly: Pt[]; color?: string }) {
+export default function YoYChart({ monthly, color = 'var(--accent)', label }: { monthly: Pt[]; color?: string; label?: string }) {
   const byYear: Record<string, Record<number, number>> = {};
   for (const p of monthly) {
     const [y, m] = p.d.split('-');
@@ -28,7 +28,7 @@ export default function YoYChart({ monthly, color = 'var(--accent)' }: { monthly
   const yTicks = [mn, (mn + mx) / 2, mx];
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ height: 'auto', display: 'block' }}>
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ height: 'auto', display: 'block' }} role="img" aria-label={`${label || 'Metric'} year-over-year, ${years.join(' vs ')}`}>
       {yTicks.map((t, i) => (
         <g key={i}>
           <line x1={PL} y1={y(t)} x2={W - PR} y2={y(t)} stroke="var(--border)" strokeWidth={0.5} />

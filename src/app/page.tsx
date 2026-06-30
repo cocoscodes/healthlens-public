@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { sampleSnapshot } from '@/lib/sample';
 import { buildView } from '@/lib/view';
 import { FOCI, type Focus } from '@/lib/focus';
@@ -27,11 +27,15 @@ export default function Home() {
   const [snap, setSnap] = useState<Snapshot>(sample);
   const [source, setSource] = useState<'sample' | string>('sample');
   const [focus, setFocus] = useState<Focus>(FOCI[0]);
+  // The sample is generated from new Date()+RNG, so server and client HTML differ.
+  // Render the data only after mount to avoid React hydration mismatches.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const isSample = source === 'sample';
   const priorityViews = focus.priority.map((m) => buildView(snap, m)).filter((v) => v.head != null);
 
   return (
-    <main className="shell">
+    <main id="main" className="shell">
       <header className="header">
         <h1>HealthLens</h1>
         <p className="tagline">
@@ -61,7 +65,13 @@ export default function Home() {
         </button>
       )}
 
+      {!mounted ? (
+        <p className="sub" style={{ marginTop: 24 }}>Loading dashboard…</p>
+      ) : (
+        <>
       <FocusBar focus={focus} onChange={setFocus} />
+
+      <div key={focus.id}>
 
       {priorityViews.length > 0 && (
         <section>
@@ -98,6 +108,9 @@ export default function Home() {
       <Workouts workouts={snap.workouts} />
 
       <ClinicalSummary snap={snap} focus={focus} />
+      </div>
+        </>
+      )}
 
       <footer className="foot">
         Open-source demo · {isSample ? 'synthetic data' : 'in-browser parse of your file'} · no health data is sent

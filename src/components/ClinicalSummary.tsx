@@ -61,8 +61,11 @@ export default function ClinicalSummary({ snap, focus }: { snap: Snapshot; focus
     L.push('KEY METRICS (recent 90-day avg vs prior 90 days; normal band = your own p25–p75):');
     rows.forEach((r) => {
       const v = r.v;
-      const band = v.band ? `${v.band.lo}–${v.band.hi}` : 'n/a';
-      L.push(`  ${v.label}: ${fmt(v.head)} ${v.unit}  (prior ${fmt(v.prior)}, Δ ${deltaStr(v.delta)})  band ${band}  [${v.trend}]`);
+      const u = v.unit;
+      const band = v.band ? `${v.band.lo}–${v.band.hi} ${u}` : 'n/a';
+      const prior = v.prior == null ? 'n/a' : `${fmt(v.prior)} ${u}`;
+      const d = v.delta == null ? 'n/a' : `${deltaStr(v.delta)} ${u}`;
+      L.push(`  ${v.label}: ${fmt(v.head)} ${u}  (prior ${prior}, Δ ${d})  band ${band}  [${v.trend}]`);
     });
     L.push('');
     L.push('ACTIVITY:');
@@ -93,17 +96,28 @@ export default function ClinicalSummary({ snap, focus }: { snap: Snapshot; focus
     }
   }
 
+  function printSummary() {
+    document.body.classList.add('print-summary');
+    const cleanup = () => {
+      document.body.classList.remove('print-summary');
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
+    window.print();
+    setTimeout(cleanup, 1000); // fallback if afterprint doesn't fire
+  }
+
   return (
     <section className="summary">
       <div className="summary-head">
         <h2 className="sec" style={{ margin: 0 }}>Clinical summary (for your doctor)</h2>
         <div className="summary-actions">
           <button onClick={copy}>{copied ? 'Copied ✓' : 'Copy as text'}</button>
-          <button onClick={() => window.print()}>Print / Save as PDF</button>
+          <button onClick={printSummary}>Print / Save as PDF</button>
         </div>
       </div>
       <p className="summary-meta">
-        Patient-generated data · {span} · focus: {focus.label} · <strong>not a medical device, not diagnostic</strong>
+        Patient-generated data · {span} · <strong>Focus: {focus.label}</strong> · <strong>not a medical device, not diagnostic</strong>
       </p>
 
       <table className="summary-table">
@@ -115,9 +129,9 @@ export default function ClinicalSummary({ snap, focus }: { snap: Snapshot; focus
             <tr key={r.m}>
               <td>{r.v.label}</td>
               <td>{fmt(r.v.head)} {r.v.unit}</td>
-              <td>{fmt(r.v.prior)}</td>
-              <td>{deltaStr(r.v.delta)}</td>
-              <td>{r.v.band ? `${r.v.band.lo}–${r.v.band.hi}` : '—'}</td>
+              <td>{r.v.prior == null ? '—' : `${fmt(r.v.prior)} ${r.v.unit}`}</td>
+              <td>{r.v.delta == null ? '—' : `${deltaStr(r.v.delta)} ${r.v.unit}`}</td>
+              <td>{r.v.band ? `${r.v.band.lo}–${r.v.band.hi} ${r.v.unit}` : '—'}</td>
               <td>{r.v.trend}</td>
             </tr>
           ))}

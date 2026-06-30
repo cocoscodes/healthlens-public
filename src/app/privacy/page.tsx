@@ -6,7 +6,7 @@ export default function Privacy() {
   return (
     <main className="shell legal">
       <h1>Privacy &amp; Terms</h1>
-      <p className="sub">Last updated: 2026. HealthLens is a free, open-source demonstration.</p>
+      <p className="sub">Last updated: 22 June 2026. HealthLens is a free, open-source demonstration.</p>
 
       <h2 className="sec">Not a medical device</h2>
       <p>
